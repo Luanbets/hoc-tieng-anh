@@ -7,58 +7,70 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f4f4f9; }
-        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; }
-        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
-        .word-card { background: white; padding: 10px; margin-top: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f0f2f5; }
+        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #1557b0; }
+        .word-card { background: #fff; padding: 15px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #1a73e8; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
-    <h2>Thêm Từ Mới</h2>
-    <input type="text" id="word" placeholder="Từ tiếng Anh...">
-    <select id="type">
-        <option value="Noun">Danh từ</option>
-        <option value="Verb">Động từ</option>
-        <option value="Adj">Tính từ</option>
-        <option value="Adv">Trạng từ</option>
-    </select>
-    <input type="text" id="mean" placeholder="Nghĩa tiếng Việt...">
-    <button onclick="save()">Lưu vào sổ tay</button>
-
-    <div id="display"></div>
+    <div class="container">
+        <h2>Sổ Tay Từ Vựng</h2>
+        <input type="text" id="word" placeholder="Từ tiếng Anh...">
+        <select id="type">
+            <option value="Danh từ">Danh từ (Noun)</option>
+            <option value="Động từ">Động từ (Verb)</option>
+            <option value="Tính từ">Tính từ (Adj)</option>
+            <option value="Trạng từ">Trạng từ (Adv)</option>
+        </select>
+        <input type="text" id="mean" placeholder="Nghĩa tiếng Việt...">
+        <button onclick="saveWord()">LƯU VÀO ĐÁM MÂY</button>
+        <div id="vocab-list"></div>
+    </div>
 
     <script>
-        // CHỖ NÀY QUAN TRỌNG: Hãy dán đoạn firebaseConfig bạn lấy được ở Project Settings vào đây
+        // CẤU HÌNH THẬT CỦA BẠN ĐÃ ĐƯỢC ĐIỀN VÀO ĐÂY
         const firebaseConfig = {
-            apiKey: "AIza...",
-            authDomain: "...",
-            databaseURL: "...",
-            projectId: "...",
-            storageBucket: "...",
-            messagingSenderId: "...",
-            appId: "..."
+            apiKey: "AIzaSyBd6yYbRWUvmq-diATZGKLoJLFCo2G-ptA",
+            authDomain: "myvocab-e4e18.firebaseapp.com",
+            databaseURL: "https://myvocab-e4e18-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "myvocab-e4e18",
+            storageBucket: "myvocab-e4e18.firebasestorage.app",
+            messagingSenderId: "450140128601",
+            appId: "1:450140128601:web:49e42b21e687d19bceb848"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        function save() {
+        function saveWord() {
             const w = document.getElementById('word').value;
             const t = document.getElementById('type').value;
             const m = document.getElementById('mean').value;
-            if(w && m) {
-                db.ref('words').push({ word: w, type: t, mean: m });
+            if (w && m) {
+                db.ref('list_tu_vung').push({
+                    word: w, type: t, mean: m,
+                    date: new Date().toLocaleDateString()
+                });
                 document.getElementById('word').value = '';
                 document.getElementById('mean').value = '';
+                alert("Đã lưu thành công!");
             }
         }
 
-        db.ref('words').on('value', (snap) => {
-            const div = document.getElementById('display');
-            div.innerHTML = '<h3>Danh sách đã học:</h3>';
-            snap.forEach((child) => {
+        db.ref('list_tu_vung').on('value', (snapshot) => {
+            const listDiv = document.getElementById('vocab-list');
+            listDiv.innerHTML = '<h3 style="margin-top:20px;">Dữ liệu:</h3>';
+            snapshot.forEach((child) => {
                 const data = child.val();
-                div.innerHTML += `<div class="word-card"><b>${data.word}</b> (${data.type}): ${data.mean}</div>`;
+                listDiv.innerHTML += `
+                    <div class="word-card">
+                        <strong>${data.word}</strong> (${data.type})<br>
+                        <span>${data.mean}</span>
+                    </div>`;
             });
         });
     </script>
