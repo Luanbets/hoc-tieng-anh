@@ -3,59 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Tay SRS Tiếng Anh</title>
+    <title>Anki Pro - Creator Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4cc9f0; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); }
-        body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
-        
-        /* Giao diện Glassmorphism */
-        .glass { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-        
-        /* Biểu đồ Dashboard */
-        .stats-container { display: flex; align-items: flex-end; justify-content: space-around; height: 120px; padding-bottom: 10px; }
-        .stat-bar { width: 40px; background: var(--primary); border-radius: 5px; position: relative; transition: height 0.5s; }
-        .stat-label { position: absolute; bottom: -25px; left: 0; width: 100%; text-align: center; font-size: 10px; opacity: 0.7; }
-
-        /* Chia Ngày (Folders) */
-        .day-scroller { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
-        .day-card { min-width: 80px; padding: 10px; text-align: center; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; }
-        .day-card.active { background: var(--primary); color: #000; font-weight: bold; }
-
-        input, select { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 10px; width: 100%; margin: 5px 0; }
-        .btn-add { background: linear-gradient(135deg, #4361ee, #4cc9f0); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-        
-        .word-card { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.03); border-radius: 15px; }
-        .lvl-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; background: #f72585; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f9fafb; }
+        .card-preview { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        input:focus, textarea:focus, select:focus { 
+            border-color: #10b981 !important; 
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+            outline: none;
+        }
     </style>
 </head>
-<body>
+<body class="p-4 lg:p-12">
 
-<div style="max-width: 600px; margin: auto;">
-    <h2 style="text-align:center">Tổng quan SRS 📊</h2>
-    
-    <div class="glass">
-        <div class="stats-container" id="chart">
+<div class="max-w-7xl mx-auto">
+    <header class="mb-10">
+        <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">Thêm thẻ mới</h1>
+        <p class="text-slate-500 mt-2 text-lg">Điền thông tin để tạo thẻ từ vựng chuẩn SRS</p>
+    </header>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-12">
+        <div class="bg-white p-8 lg:p-10 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+            <h2 class="text-2xl font-bold text-slate-800 mb-8 flex items-center gap-2">
+                <span class="w-2 h-8 bg-emerald-500 rounded-full"></span> Thông tin thẻ
+            </h2>
+            
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Bộ từ *</label>
+                        <select class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-600 font-medium">
+                            <option>100 Ngày Tiếng Anh</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Loại từ *</label>
+                        <select id="type" onchange="updatePreview()" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-600 font-medium">
+                            <option value="Noun">Noun</option>
+                            <option value="Verb">Verb</option>
+                            <option value="Adj">Adjective</option>
+                            <option value="Adv">Adverb</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Từ vựng *</label>
+                        <input type="text" id="word" oninput="updatePreview()" placeholder="Ví dụ: Resilient" class="w-full p-4 border border-slate-200 rounded-2xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">IPA (Phiên âm) *</label>
+                        <input type="text" id="ipa" oninput="updatePreview()" placeholder="Ví dụ: /rɪˈzɪl.jənt/" class="w-full p-4 border border-slate-200 rounded-2xl italic">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">Nghĩa tiếng Việt *</label>
+                    <textarea id="mean" oninput="updatePreview()" rows="2" placeholder="Nghĩa của từ..." class="w-full p-4 border border-slate-200 rounded-2xl"></textarea>
+                </div>
+
+                <div class="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 space-y-4">
+                    <label class="block text-sm font-bold text-slate-700">Ví dụ minh họa & Hình ảnh</label>
+                    <textarea id="ex1" oninput="updatePreview()" placeholder="Câu ví dụ tiếng Anh..." class="w-full p-4 border border-slate-200 rounded-2xl"></textarea>
+                    <input type="text" id="img1" oninput="updatePreview()" placeholder="Dán URL hình ảnh (không bắt buộc)..." class="w-full p-4 border border-slate-200 rounded-2xl text-sm">
+                </div>
+
+                <button onclick="saveToFirebase()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-5 rounded-2xl mt-4 transition-all transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-emerald-200 flex items-center justify-center gap-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Tạo thẻ ngay
+                </button>
             </div>
-    </div>
-
-    <div class="glass">
-        <h3>Lộ trình 100 ngày</h3>
-        <div class="day-scroller" id="dayList">
-            </div>
-    </div>
-
-    <div class="glass">
-        <h3>Thêm từ mới cho <span id="currentDayTxt">Ngày 1</span></h3>
-        <input type="text" id="word" placeholder="Từ vựng...">
-        <input type="text" id="mean" placeholder="Nghĩa...">
-        <input type="text" id="img" placeholder="Link ảnh minh họa...">
-        <button class="btn-add" onclick="saveWord()">LƯU VÀO HỆ THỐNG</button>
-    </div>
-
-    <div id="displayArea">
         </div>
+
+        <div class="sticky top-12 self-start space-y-8">
+            <h2 class="text-slate-400 font-bold uppercase tracking-widest text-sm flex items-center gap-3">
+                <span class="w-10 h-[1px] bg-slate-200"></span> Xem trước thẻ
+            </h2>
+            
+            <div class="card-preview bg-white p-12 rounded-[3rem] shadow-2xl border border-slate-50 text-center min-h-[280px] flex flex-col justify-center relative overflow-hidden">
+                <div class="absolute top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Front Side</div>
+                <span id="p-type" class="mx-auto bg-emerald-100 text-emerald-700 px-5 py-1.5 rounded-full text-xs font-black mb-6 uppercase">Noun</span>
+                <h3 id="p-word" class="text-6xl font-black text-slate-800 mb-3">Từ vựng</h3>
+                <p id="p-ipa" class="text-xl text-slate-400 font-medium">/phiên âm/</p>
+            </div>
+
+            <div class="card-preview bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-50 min-h-[350px] relative overflow-hidden">
+                <div class="absolute top-6 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Back Side</div>
+                
+                <div class="mt-8 flex items-center gap-4 border-b border-slate-100 pb-6 mb-6">
+                    <span id="p-word-back" class="font-extrabold text-2xl text-slate-800">Từ vựng</span>
+                    <span id="p-type-back" class="bg-slate-800 text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase">Noun</span>
+                </div>
+                
+                <div class="mb-8">
+                    <p class="text-[11px] text-slate-400 font-black uppercase mb-2 tracking-wider">Nghĩa tiếng Việt</p>
+                    <p id="p-mean" class="text-xl text-slate-700 font-semibold">Nghĩa của từ sẽ hiện ở đây</p>
+                </div>
+
+                <div class="bg-slate-50 p-6 rounded-[2rem] flex gap-5 items-center border border-slate-100">
+                    <div id="p-img-box" class="w-24 h-24 bg-slate-200 rounded-2xl flex-shrink-0 overflow-hidden hidden shadow-inner">
+                        <img id="p-img-src" src="" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-emerald-500 font-black uppercase mb-1">Ví dụ minh họa</p>
+                        <p id="p-ex1" class="text-slate-600 italic leading-relaxed font-medium">Câu ví dụ tiếng Anh sẽ hiển thị tại vùng này...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -71,71 +134,51 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    let currentDay = 1;
 
-    // Tạo danh sách 100 ngày
-    const dayList = document.getElementById('dayList');
-    for(let i=1; i<=100; i++) {
-        const div = document.createElement('div');
-        div.className = `day-card ${i===1?'active':''}`;
-        div.innerText = `Ngày ${i}`;
-        div.onclick = () => {
-            document.querySelectorAll('.day-card').forEach(el => el.classList.remove('active'));
-            div.classList.add('active');
-            currentDay = i;
-            document.getElementById('currentDayTxt').innerText = `Ngày ${i}`;
-            loadWords();
-        };
-        dayList.appendChild(div);
-    }
+    function updatePreview() {
+        const word = document.getElementById('word').value || 'Từ vựng';
+        const ipa = document.getElementById('ipa').value || '/phiên âm/';
+        const type = document.getElementById('type').value;
+        const mean = document.getElementById('mean').value || 'Nghĩa của từ';
+        const ex1 = document.getElementById('ex1').value || 'Câu ví dụ tiếng Anh...';
+        const img = document.getElementById('img1').value;
 
-    function saveWord() {
-        const w = document.getElementById('word').value;
-        const m = document.getElementById('mean').value;
-        const i = document.getElementById('img').value;
-        if(w && m) {
-            db.ref(`srs_data/day_${currentDay}`).push({
-                word: w, mean: m, image: i,
-                level: 1, 
-                nextReview: Date.now() + 86400000 // +1 ngày
-            });
-            document.getElementById('word').value = '';
-            document.getElementById('mean').value = '';
-            document.getElementById('img').value = '';
+        document.getElementById('p-word').innerText = word;
+        document.getElementById('p-word-back').innerText = word;
+        document.getElementById('p-ipa').innerText = ipa;
+        document.getElementById('p-type').innerText = type;
+        document.getElementById('p-type-back').innerText = type;
+        document.getElementById('p-mean').innerText = mean;
+        document.getElementById('p-ex1').innerText = ex1;
+
+        const imgBox = document.getElementById('p-img-box');
+        if(img) {
+            imgBox.classList.remove('hidden');
+            document.getElementById('p-img-src').src = img;
+        } else {
+            imgBox.classList.add('hidden');
         }
     }
 
-    function loadWords() {
-        db.ref(`srs_data/day_${currentDay}`).on('value', (snap) => {
-            const area = document.getElementById('displayArea');
-            area.innerHTML = '';
-            snap.forEach(child => {
-                const d = child.val();
-                area.innerHTML += `
-                    <div class="word-card glass">
-                        <div>
-                            <strong>${d.word}</strong> <span class="lvl-badge">Lvl ${d.level}</span><br>
-                            <small>${d.mean}</small>
-                        </div>
-                        ${d.image ? `<img src="${d.image}" style="width:50px;height:50px;border-radius:10px;object-fit:cover">` : ''}
-                    </div>
-                `;
-            });
-            updateChart();
+    function saveToFirebase() {
+        const data = {
+            word: document.getElementById('word').value,
+            ipa: document.getElementById('ipa').value,
+            type: document.getElementById('type').value,
+            mean: document.getElementById('mean').value,
+            ex1: document.getElementById('ex1').value,
+            img: document.getElementById('img1').value,
+            lvl: 1,
+            next: Date.now()
+        };
+
+        if(!data.word || !data.mean) return alert("Vui lòng điền các mục có dấu *");
+
+        db.ref('anki_pro/cards').push(data).then(() => {
+            alert("Tạo thẻ thành công! Bạn là bậc thầy học tập.");
+            location.reload();
         });
     }
-
-    function updateChart() {
-        const chart = document.getElementById('chart');
-        chart.innerHTML = '';
-        const mockLevels = [5, 12, 8, 3, 2]; // Sau này sẽ code hàm đếm thật từ Firebase
-        mockLevels.forEach((val, i) => {
-            chart.innerHTML += `<div class="stat-bar" style="height:${val*5}px"><div class="stat-label">Lvl ${i+1}</div></div>`;
-        });
-    }
-
-    loadWords();
-    updateChart();
 </script>
 </body>
 </html>
