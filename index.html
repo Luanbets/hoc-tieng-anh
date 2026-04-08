@@ -3,76 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Tay 10 Từ Mỗi Ngày</title>
+    <title>Sổ Tay SRS Tiếng Anh</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f0f2f5; }
-        .container { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h2 { color: #1a73e8; text-align: center; margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        button:hover { background: #1557b0; }
-        .word-card { background: #fff; padding: 15px; margin-top: 10px; border-radius: 8px; border-left: 5px solid #1a73e8; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        :root { --primary: #4cc9f0; --bg: #0f172a; --card: rgba(30, 41, 59, 0.7); }
+        body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        
+        /* Giao diện Glassmorphism */
+        .glass { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
+        
+        /* Biểu đồ Dashboard */
+        .stats-container { display: flex; align-items: flex-end; justify-content: space-around; height: 120px; padding-bottom: 10px; }
+        .stat-bar { width: 40px; background: var(--primary); border-radius: 5px; position: relative; transition: height 0.5s; }
+        .stat-label { position: absolute; bottom: -25px; left: 0; width: 100%; text-align: center; font-size: 10px; opacity: 0.7; }
+
+        /* Chia Ngày (Folders) */
+        .day-scroller { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
+        .day-card { min-width: 80px; padding: 10px; text-align: center; background: rgba(255,255,255,0.05); border-radius: 12px; cursor: pointer; }
+        .day-card.active { background: var(--primary); color: #000; font-weight: bold; }
+
+        input, select { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 12px; border-radius: 10px; width: 100%; margin: 5px 0; }
+        .btn-add { background: linear-gradient(135deg, #4361ee, #4cc9f0); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        .word-card { display: flex; align-items: center; justify-content: space-between; padding: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.03); border-radius: 15px; }
+        .lvl-badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; background: #f72585; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Sổ Tay Từ Vựng</h2>
-        <input type="text" id="word" placeholder="Từ tiếng Anh...">
-        <select id="type">
-            <option value="Danh từ">Danh từ (Noun)</option>
-            <option value="Động từ">Động từ (Verb)</option>
-            <option value="Tính từ">Tính từ (Adj)</option>
-            <option value="Trạng từ">Trạng từ (Adv)</option>
-        </select>
-        <input type="text" id="mean" placeholder="Nghĩa tiếng Việt...">
-        <button onclick="saveWord()">LƯU VÀO ĐÁM MÂY</button>
-        <div id="vocab-list"></div>
+
+<div style="max-width: 600px; margin: auto;">
+    <h2 style="text-align:center">Tổng quan SRS 📊</h2>
+    
+    <div class="glass">
+        <div class="stats-container" id="chart">
+            </div>
     </div>
 
-    <script>
-        // CẤU HÌNH THẬT CỦA BẠN ĐÃ ĐƯỢC ĐIỀN VÀO ĐÂY
-        const firebaseConfig = {
-            apiKey: "AIzaSyBd6yYbRWUvmq-diATZGKLoJLFCo2G-ptA",
-            authDomain: "myvocab-e4e18.firebaseapp.com",
-            databaseURL: "https://myvocab-e4e18-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "myvocab-e4e18",
-            storageBucket: "myvocab-e4e18.firebasestorage.app",
-            messagingSenderId: "450140128601",
-            appId: "1:450140128601:web:49e42b21e687d19bceb848"
+    <div class="glass">
+        <h3>Lộ trình 100 ngày</h3>
+        <div class="day-scroller" id="dayList">
+            </div>
+    </div>
+
+    <div class="glass">
+        <h3>Thêm từ mới cho <span id="currentDayTxt">Ngày 1</span></h3>
+        <input type="text" id="word" placeholder="Từ vựng...">
+        <input type="text" id="mean" placeholder="Nghĩa...">
+        <input type="text" id="img" placeholder="Link ảnh minh họa...">
+        <button class="btn-add" onclick="saveWord()">LƯU VÀO HỆ THỐNG</button>
+    </div>
+
+    <div id="displayArea">
+        </div>
+</div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyBd6yYbRWUvmq-diATZGKLoJLFCo2G-ptA",
+        authDomain: "myvocab-e4e18.firebaseapp.com",
+        databaseURL: "https://myvocab-e4e18-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "myvocab-e4e18",
+        storageBucket: "myvocab-e4e18.firebasestorage.app",
+        messagingSenderId: "450140128601",
+        appId: "1:450140128601:web:49e42b21e687d19bceb848"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    let currentDay = 1;
+
+    // Tạo danh sách 100 ngày
+    const dayList = document.getElementById('dayList');
+    for(let i=1; i<=100; i++) {
+        const div = document.createElement('div');
+        div.className = `day-card ${i===1?'active':''}`;
+        div.innerText = `Ngày ${i}`;
+        div.onclick = () => {
+            document.querySelectorAll('.day-card').forEach(el => el.classList.remove('active'));
+            div.classList.add('active');
+            currentDay = i;
+            document.getElementById('currentDayTxt').innerText = `Ngày ${i}`;
+            loadWords();
         };
+        dayList.appendChild(div);
+    }
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        function saveWord() {
-            const w = document.getElementById('word').value;
-            const t = document.getElementById('type').value;
-            const m = document.getElementById('mean').value;
-            if (w && m) {
-                db.ref('list_tu_vung').push({
-                    word: w, type: t, mean: m,
-                    date: new Date().toLocaleDateString()
-                });
-                document.getElementById('word').value = '';
-                document.getElementById('mean').value = '';
-                alert("Đã lưu thành công!");
-            }
-        }
-
-        db.ref('list_tu_vung').on('value', (snapshot) => {
-            const listDiv = document.getElementById('vocab-list');
-            listDiv.innerHTML = '<h3 style="margin-top:20px;">Dữ liệu:</h3>';
-            snapshot.forEach((child) => {
-                const data = child.val();
-                listDiv.innerHTML += `
-                    <div class="word-card">
-                        <strong>${data.word}</strong> (${data.type})<br>
-                        <span>${data.mean}</span>
-                    </div>`;
+    function saveWord() {
+        const w = document.getElementById('word').value;
+        const m = document.getElementById('mean').value;
+        const i = document.getElementById('img').value;
+        if(w && m) {
+            db.ref(`srs_data/day_${currentDay}`).push({
+                word: w, mean: m, image: i,
+                level: 1, 
+                nextReview: Date.now() + 86400000 // +1 ngày
             });
+            document.getElementById('word').value = '';
+            document.getElementById('mean').value = '';
+            document.getElementById('img').value = '';
+        }
+    }
+
+    function loadWords() {
+        db.ref(`srs_data/day_${currentDay}`).on('value', (snap) => {
+            const area = document.getElementById('displayArea');
+            area.innerHTML = '';
+            snap.forEach(child => {
+                const d = child.val();
+                area.innerHTML += `
+                    <div class="word-card glass">
+                        <div>
+                            <strong>${d.word}</strong> <span class="lvl-badge">Lvl ${d.level}</span><br>
+                            <small>${d.mean}</small>
+                        </div>
+                        ${d.image ? `<img src="${d.image}" style="width:50px;height:50px;border-radius:10px;object-fit:cover">` : ''}
+                    </div>
+                `;
+            });
+            updateChart();
         });
-    </script>
+    }
+
+    function updateChart() {
+        const chart = document.getElementById('chart');
+        chart.innerHTML = '';
+        const mockLevels = [5, 12, 8, 3, 2]; // Sau này sẽ code hàm đếm thật từ Firebase
+        mockLevels.forEach((val, i) => {
+            chart.innerHTML += `<div class="stat-bar" style="height:${val*5}px"><div class="stat-label">Lvl ${i+1}</div></div>`;
+        });
+    }
+
+    loadWords();
+    updateChart();
+</script>
 </body>
 </html>
