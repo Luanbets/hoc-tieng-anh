@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Tay 10 Từ Mỗi Ngày</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto; background: #f4f4f9; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .word-card { background: white; padding: 10px; margin-top: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+    <h2>Thêm Từ Mới</h2>
+    <input type="text" id="word" placeholder="Từ tiếng Anh...">
+    <select id="type">
+        <option value="Noun">Danh từ</option>
+        <option value="Verb">Động từ</option>
+        <option value="Adj">Tính từ</option>
+        <option value="Adv">Trạng từ</option>
+    </select>
+    <input type="text" id="mean" placeholder="Nghĩa tiếng Việt...">
+    <button onclick="save()">Lưu vào sổ tay</button>
+
+    <div id="display"></div>
+
+    <script>
+        // CHỖ NÀY QUAN TRỌNG: Hãy dán đoạn firebaseConfig bạn lấy được ở Project Settings vào đây
+        const firebaseConfig = {
+            apiKey: "AIza...",
+            authDomain: "...",
+            databaseURL: "...",
+            projectId: "...",
+            storageBucket: "...",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function save() {
+            const w = document.getElementById('word').value;
+            const t = document.getElementById('type').value;
+            const m = document.getElementById('mean').value;
+            if(w && m) {
+                db.ref('words').push({ word: w, type: t, mean: m });
+                document.getElementById('word').value = '';
+                document.getElementById('mean').value = '';
+            }
+        }
+
+        db.ref('words').on('value', (snap) => {
+            const div = document.getElementById('display');
+            div.innerHTML = '<h3>Danh sách đã học:</h3>';
+            snap.forEach((child) => {
+                const data = child.val();
+                div.innerHTML += `<div class="word-card"><b>${data.word}</b> (${data.type}): ${data.mean}</div>`;
+            });
+        });
+    </script>
+</body>
+</html>
